@@ -119,7 +119,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     endDateIso: "2026-10-11T18:00:00+03:00",
     year: 2026,
     hashtag: "#Bestinthewest",
-    siteUrl: "https://bufalomun.example",
+    siteUrl: "https://bufalomun.vercel.app",
     contactEmail: "Email to be announced",
     senderEmail: "onboarding@resend.dev",
     instagramUrl: "https://www.instagram.com/bufalo.mun/",
