@@ -9,6 +9,9 @@ type FadeInProps = {
   delay?: number;
   direction?: "up" | "down" | "left" | "right" | "none";
   duration?: number;
+  distance?: number;
+  threshold?: number;
+  rootMargin?: string;
   as?: React.ElementType;
   once?: boolean;
 };
@@ -19,6 +22,9 @@ export default function FadeIn({
   delay = 0,
   direction = "up",
   duration = 750,
+  distance = 32,
+  threshold = 0.15,
+  rootMargin = "0px 0px -100px 0px",
   as: Component = "div",
   once = true,
 }: FadeInProps) {
@@ -44,26 +50,26 @@ export default function FadeIn({
         }
       },
       {
-        threshold: 0.08,
-        rootMargin: "0px 0px -30px 0px",
+        threshold,
+        rootMargin,
       }
     );
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [once]);
+  }, [once, threshold, rootMargin]);
 
   const getTransform = () => {
     if (isVisible) return "translate3d(0, 0, 0)";
     switch (direction) {
       case "up":
-        return "translate3d(0, 24px, 0)";
+        return `translate3d(0, ${distance}px, 0)`;
       case "down":
-        return "translate3d(0, -24px, 0)";
+        return `translate3d(0, -${distance}px, 0)`;
       case "left":
-        return "translate3d(24px, 0, 0)";
+        return `translate3d(${distance}px, 0, 0)`;
       case "right":
-        return "translate3d(-24px, 0, 0)";
+        return `translate3d(-${distance}px, 0, 0)`;
       case "none":
       default:
         return "none";
