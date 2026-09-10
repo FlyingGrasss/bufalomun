@@ -1,0 +1,13 @@
+CREATE TYPE "SubmissionStatus" AS ENUM ('PROCESSING', 'FAILED', 'COMPLETED');
+CREATE TABLE "ConferenceSettings" ("id" INTEGER NOT NULL DEFAULT 1, "data" JSONB NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, CONSTRAINT "ConferenceSettings_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Committee" ("id" SERIAL NOT NULL, "sortOrder" INTEGER NOT NULL DEFAULT 0, "name" TEXT NOT NULL, "slug" TEXT NOT NULL, "imageUrl" TEXT, "description" TEXT NOT NULL, "documents" JSONB, "isPublished" BOOLEAN NOT NULL DEFAULT true, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, CONSTRAINT "Committee_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "TeamMember" ("id" SERIAL NOT NULL, "sortOrder" INTEGER NOT NULL DEFAULT 0, "name" TEXT NOT NULL, "slug" TEXT NOT NULL, "role" TEXT NOT NULL, "imageUrl" TEXT, "bio" TEXT NOT NULL, "instagram" TEXT, "isPublished" BOOLEAN NOT NULL DEFAULT true, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, CONSTRAINT "TeamMember_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "VerificationChallenge" ("id" TEXT NOT NULL, "email" TEXT NOT NULL, "applicationType" TEXT NOT NULL, "codeHash" TEXT NOT NULL, "payloadHash" TEXT NOT NULL, "ipHash" TEXT NOT NULL, "attempts" INTEGER NOT NULL DEFAULT 0, "expiresAt" TIMESTAMP(3) NOT NULL, "lastSentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "VerificationChallenge_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "SubmissionClaim" ("id" TEXT NOT NULL, "email" TEXT NOT NULL, "applicationType" TEXT NOT NULL, "status" "SubmissionStatus" NOT NULL DEFAULT 'PROCESSING', "attempts" INTEGER NOT NULL DEFAULT 1, "lastErrorCode" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, "completedAt" TIMESTAMP(3), CONSTRAINT "SubmissionClaim_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "Committee_slug_key" ON "Committee"("slug");
+CREATE UNIQUE INDEX "TeamMember_slug_key" ON "TeamMember"("slug");
+CREATE UNIQUE INDEX "VerificationChallenge_email_applicationType_key" ON "VerificationChallenge"("email", "applicationType");
+CREATE INDEX "VerificationChallenge_ipHash_createdAt_idx" ON "VerificationChallenge"("ipHash", "createdAt");
+CREATE INDEX "VerificationChallenge_expiresAt_idx" ON "VerificationChallenge"("expiresAt");
+CREATE UNIQUE INDEX "SubmissionClaim_email_applicationType_key" ON "SubmissionClaim"("email", "applicationType");
+CREATE INDEX "SubmissionClaim_status_updatedAt_idx" ON "SubmissionClaim"("status", "updatedAt");

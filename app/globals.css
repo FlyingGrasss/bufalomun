@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --red: #e90238;
+  --charcoal: #2e2e2e;
+  --brown: #644e43;
+  --buffalo: #ddd0c8;
+  --paper: #f6f1ed;
+  --ink: #272422;
+  --border: #cfc4bc;
+  --muted: #6d625c;
+  --focus: #e90238;
+}
+
+@theme inline {
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-instrument);
+}
+
+* { box-sizing: border-box; }
+html { scroll-padding-top: 5rem; }
+body { margin: 0; font-family: var(--font-manrope), sans-serif; }
+::selection { background: var(--red); color: white; }
+a { text-underline-offset: .22em; }
+button, input, textarea, select { font: inherit; }
+
+.font-display { font-family: var(--font-instrument), serif; }
+.site-container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
+.section-shell { padding-block: clamp(5rem, 10vw, 9rem); }
+.eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+.link-underline { text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-decoration-thickness: 1px; }
+.link-underline:hover { text-decoration-color: currentColor; }
+.skip-link { position: fixed; z-index: 100; left: 1rem; top: -6rem; background: white; color: black; padding: .75rem 1rem; }
+.skip-link:focus { top: 1rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

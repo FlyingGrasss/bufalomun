@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ConferenceSettings {
+  id        Int      @id @default(1)
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Committee {
+  id          Int      @id @default(autoincrement())
+  sortOrder   Int      @default(0)
+  name        String
+  slug        String   @unique
+  imageUrl    String?
+  description String   @db.Text
+  documents   Json?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TeamMember {
+  id          Int      @id @default(autoincrement())
+  sortOrder   Int      @default(0)
+  name        String
+  slug        String   @unique
+  role        String
+  imageUrl    String?
+  bio         String   @db.Text
+  instagram   String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VerificationChallenge {
+  id              String   @id @default(cuid())
+  email           String
+  applicationType String
+  codeHash        String
+  payloadHash     String
+  ipHash          String
+  attempts        Int      @default(0)
+  expiresAt       DateTime
+  lastSentAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@unique([email, applicationType])
+  @@index([ipHash, createdAt])
+  @@index([expiresAt])
+}
+
+model SubmissionClaim {
+  id              String           @id @default(cuid())
+  email           String
+  applicationType String
+  status          SubmissionStatus @default(PROCESSING)
+  attempts        Int              @default(1)
+  lastErrorCode   String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  completedAt     DateTime?
+
+  @@unique([email, applicationType])
+  @@index([status, updatedAt])
+}
+
+enum SubmissionStatus {
+  PROCESSING
+  FAILED
+  COMPLETED
+}
