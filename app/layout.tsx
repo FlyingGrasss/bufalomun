@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import Footer from "@/components/Footer";
 import SiteNav from "@/components/SiteNav";
+import SmoothScroll from "@/components/SmoothScroll";
 import { getPublicContent, publicSiteUrl } from "@/lib/site-settings";
 import "./globals.css";
 
@@ -65,10 +66,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${manrope.variable} ${instrument.variable} scroll-smooth antialiased`}>
       <body className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
-        <a className="skip-link" href="#main-content">Skip to content</a>
-        <SiteNav enabled={settings.sections} />
-        <main id="main-content">{children}</main>
-        {settings.sections.contact && <Footer settings={settings} />}
+        <SmoothScroll>
+          <a className="skip-link" href="#main-content">Skip to content</a>
+          <SiteNav enabled={settings.sections} />
+          <main id="main-content">{children}</main>
+          {settings.sections.contact && <Footer settings={settings} />}
+        </SmoothScroll>
       </body>
     </html>
   );
