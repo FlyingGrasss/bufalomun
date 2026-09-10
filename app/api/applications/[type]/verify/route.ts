@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ typ
   if (previous?.status === "COMPLETED") return NextResponse.json({ ok: true, alreadySubmitted: true });
   const claim = await prisma.submissionClaim.upsert({ where: { email_applicationType: { email: result.email, applicationType: type } }, create: { email: result.email, applicationType: type, status: "PROCESSING" }, update: { status: "PROCESSING", attempts: { increment: 1 }, lastErrorCode: null } });
   try {
-    await appendApplication(type, result.payload, claim.id);
+    await appendApplication(type, result.payload, claim.id, settings);
     await prisma.$transaction([
       prisma.submissionClaim.update({ where: { email_applicationType: { email: result.email, applicationType: type } }, data: { status: "COMPLETED", completedAt: new Date() } }),
       prisma.verificationChallenge.delete({ where: { id: challenge.id } }),

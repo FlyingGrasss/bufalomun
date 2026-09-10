@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/field";
 import ImageUpload from "@/components/ImageUpload";
+import LoginForm from "@/components/LoginForm";
 import { createCommittee, createTeamMember, deleteCommittee, deleteTeamMember, login, logout, saveSettings, updateCommittee, updateTeamMember } from "./actions";
 
 export const metadata = { title: "Administration", robots: { index: false, follow: false } };
@@ -11,7 +12,7 @@ export const instant = false;
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string; saved?: string }> }) {
   const query = await searchParams;
-  if (!await isAdmin()) return <div className="site-container grid min-h-[70svh] place-items-center py-16"><form action={login} className="w-full max-w-sm rounded-xl border border-[var(--border)] bg-white p-7"><p className="eyebrow text-[var(--red)]">Private area</p><h1 className="mt-3 font-display text-5xl">Administration</h1><label htmlFor="password" className="mt-8 block text-sm font-bold">Shared password</label><Input id="password" name="password" type="password" required autoComplete="current-password" className="mt-2" />{query.error && <p className="mt-3 text-sm text-red-700">The password was not accepted. Please try again.</p>}<Button type="submit" className="mt-5 w-full">Sign in</Button></form></div>;
+  if (!await isAdmin()) return <div className="site-container grid min-h-[70svh] place-items-center py-16"><LoginForm action={login} error={!!query.error} /></div>;
   const [stored, committees, team] = await Promise.all([prisma.conferenceSettings.findUnique({ where: { id: 1 } }), prisma.committee.findMany({ orderBy: { sortOrder: "asc" } }), prisma.teamMember.findMany({ orderBy: { sortOrder: "asc" } })]);
   const settings = stored?.data || DEFAULT_SETTINGS;
   return <div className="site-container py-12"><div className="flex flex-wrap items-end justify-between gap-5"><div><p className="eyebrow text-[var(--red)]">BUFALOMUN</p><h1 className="mt-2 font-display text-6xl">Content administration</h1></div><form action={logout}><Button variant="secondary" type="submit">Sign out</Button></form></div>{query.saved && <p className="mt-6 border-l-4 border-green-700 bg-green-50 p-4 text-sm font-bold text-green-800">Changes saved and published.</p>}
