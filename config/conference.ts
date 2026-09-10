@@ -53,13 +53,11 @@ const questions: Record<ApplicationType, QuestionDefinition[]> = {
     ...personal(),
     q("englishLevel", "English Level", "dropdown", true, { options: englishLevels }),
     ...preferences(),
-    q("magnificentCenturyKnowledge", "Muhteşem Yüzyıl bilginizi 10 üzerinden nasıl değerlendirirsiniz?", "number", true),
     ...commonEnd(),
   ],
   chair: [
     ...personal(),
     ...preferences(),
-    q("magnificentCenturyKnowledge", "Muhteşem Yüzyıl bilginizi 10 üzerinden nasıl değerlendirirsiniz?", "number", true),
     ...commonEnd().slice(0, 3),
     q("chairDelegateOption", "If your application for the chairboard is not approved, would you like to participate as a delegate?", "dropdown", false, { options: ["Yes", "No"] }),
     q("chairAiConcern", "Some delegates say that another delegate is using AI. What would you do?", "longText"),
