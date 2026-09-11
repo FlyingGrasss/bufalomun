@@ -1,46 +1,277 @@
 "use server";
 
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { updateTag } from "next/cache";
-import { allowRequest } from "@/lib/applications/security";
-import { clearAdminSession, createAdminSession, isAdmin, verifyAdminPassword } from "@/lib/admin-auth";
+import { clearAdminSession, createAdminSession, verifyAdminPassword, requireAdmin } from "@/lib/admin-auth";
+import { parseDocuments } from "@/lib/documents";
 import { prisma } from "@/lib/prisma";
-import { normalizeSettings } from "@/lib/site-settings";
 import { toSlug } from "@/lib/slug";
+import { getPublicContent, normalizeSettings } from "@/lib/site-settings";
+import { normalizeQuestionDefinition, type QuestionDefinition, type QuestionType } from "@/lib/questions";
+import { revalidatePath, updateTag } from "next/cache";
+import { redirect } from "next/navigation";
+import type { SiteSettings } from "@/types/conference";
 
-async function requireAdmin() { if (!await isAdmin()) redirect("/admin"); }
-async function validOrigin() { const source = (await headers()).get("origin"); const expected = process.env.ADMIN_ORIGIN || process.env.NEXT_PUBLIC_SITE_URL; return !expected || source === expected; }
+function stringValue(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
 
-export async function login(formData: FormData) {
-  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0] || "unknown";
-  if (!await allowRequest(`${ip}:admin-login`) || !await validOrigin()) redirect("/admin?error=login");
-  if (!verifyAdminPassword(String(formData.get("password") || ""))) redirect("/admin?error=login");
-  await createAdminSession(); redirect("/admin");
+function intValue(formData: FormData, key: string) {
+  const parsed = Number(stringValue(formData, key));
+  return Number.isFinite(parsed) ? parsed : 0;
 }
-export async function logout() { await clearAdminSession(); redirect("/"); }
-export async function saveSettings(formData: FormData) {
-  await requireAdmin(); if (!await validOrigin()) throw new Error("Invalid origin");
-  let data: unknown; try { data = JSON.parse(String(formData.get("settings") || "")); } catch { redirect("/admin?error=json"); }
-  const settings = normalizeSettings(data);
-  await prisma.conferenceSettings.upsert({ where: { id: 1 }, create: { id: 1, data: settings }, update: { data: settings } });
-  updateTag("site-content"); redirect("/admin?saved=settings");
+
+function checkboxValue(formData: FormData, key: string) {
+  return formData.get(key) === "on";
 }
-export async function createCommittee(formData: FormData) {
-  await requireAdmin(); const name = String(formData.get("name") || "").trim(); if (!name) return;
-  await prisma.committee.create({ data: { name, slug: toSlug(name), description: String(formData.get("description") || ""), imageUrl: String(formData.get("imageUrl") || "") || null, isPublished: formData.get("isPublished") === "on" } }); updateTag("site-content"); redirect("/admin?saved=committee");
+
+export async function loginAction(formData: FormData) {
+  const password = stringValue(formData, "password");
+
+  if (!verifyAdminPassword(password)) {
+    redirect("/admin/login?error=1");
+  }
+
+  await createAdminSession();
+  redirect("/admin");
 }
-export async function deleteCommittee(formData: FormData) { await requireAdmin(); await prisma.committee.delete({ where: { id: Number(formData.get("id")) } }); updateTag("site-content"); redirect("/admin"); }
-export async function updateCommittee(formData: FormData) {
-  await requireAdmin(); const id = Number(formData.get("id")); const name = String(formData.get("name") || "").trim(); if (!id || !name) return;
-  await prisma.committee.update({ where: { id }, data: { name, slug: toSlug(name), description: String(formData.get("description") || ""), imageUrl: String(formData.get("imageUrl") || "") || null, isPublished: formData.get("isPublished") === "on" } }); updateTag("site-content"); redirect("/admin?saved=committee");
+
+export async function logoutAction() {
+  await clearAdminSession();
+  redirect("/admin/login");
 }
-export async function createTeamMember(formData: FormData) {
-  await requireAdmin(); const name = String(formData.get("name") || "").trim(); if (!name) return;
-  await prisma.teamMember.create({ data: { name, slug: toSlug(name), role: String(formData.get("role") || ""), bio: String(formData.get("bio") || ""), imageUrl: String(formData.get("imageUrl") || "") || null, instagram: String(formData.get("instagram") || "") || null, isPublished: formData.get("isPublished") === "on" } }); updateTag("site-content"); redirect("/admin?saved=team");
+
+export async function createCommitteeAction(formData: FormData) {
+  await requireAdmin();
+  const name = stringValue(formData, "name");
+  if (!name) return;
+  const slug = stringValue(formData, "slug") || toSlug(name);
+
+  await prisma.committee.create({
+    data: {
+      name,
+      slug,
+      sortOrder: intValue(formData, "sortOrder"),
+      imageUrl: stringValue(formData, "imageUrl") || null,
+      description: stringValue(formData, "description"),
+      documents: parseDocuments(formData.get("documents")),
+      isPublished: checkboxValue(formData, "isPublished"),
+    },
+  });
+
+  updateTag("site-content");
+  revalidatePath("/committees");
+  revalidatePath("/");
+  redirect("/admin");
 }
-export async function deleteTeamMember(formData: FormData) { await requireAdmin(); await prisma.teamMember.delete({ where: { id: Number(formData.get("id")) } }); updateTag("site-content"); redirect("/admin"); }
-export async function updateTeamMember(formData: FormData) {
-  await requireAdmin(); const id = Number(formData.get("id")); const name = String(formData.get("name") || "").trim(); if (!id || !name) return;
-  await prisma.teamMember.update({ where: { id }, data: { name, slug: toSlug(name), role: String(formData.get("role") || ""), bio: String(formData.get("bio") || ""), imageUrl: String(formData.get("imageUrl") || "") || null, instagram: String(formData.get("instagram") || "") || null, isPublished: formData.get("isPublished") === "on" } }); updateTag("site-content"); redirect("/admin?saved=team");
+
+export async function updateCommitteeAction(id: number, formData: FormData) {
+  await requireAdmin();
+  const name = stringValue(formData, "name");
+  if (!id || !name) return;
+  const slug = stringValue(formData, "slug") || toSlug(name);
+  const imageUrl = stringValue(formData, "imageUrl") || null;
+
+  await prisma.committee.update({
+    where: { id },
+    data: {
+      name,
+      slug,
+      sortOrder: intValue(formData, "sortOrder"),
+      imageUrl,
+      description: stringValue(formData, "description"),
+      documents: parseDocuments(formData.get("documents")),
+      isPublished: checkboxValue(formData, "isPublished"),
+    },
+  });
+
+  updateTag("site-content");
+  revalidatePath("/committees");
+  revalidatePath("/");
+  redirect("/admin");
+}
+
+export async function deleteCommitteeAction(id: number) {
+  await requireAdmin();
+  await prisma.committee.delete({ where: { id } });
+  updateTag("site-content");
+  revalidatePath("/committees");
+  revalidatePath("/");
+  redirect("/admin");
+}
+
+export async function createTeamMemberAction(formData: FormData) {
+  await requireAdmin();
+  const name = stringValue(formData, "name");
+  if (!name) return;
+  const slug = stringValue(formData, "slug") || toSlug(name);
+
+  await prisma.teamMember.create({
+    data: {
+      name,
+      slug,
+      role: stringValue(formData, "role"),
+      sortOrder: intValue(formData, "sortOrder"),
+      imageUrl: stringValue(formData, "imageUrl") || null,
+      bio: stringValue(formData, "bio"),
+      instagram: stringValue(formData, "instagram") || null,
+      isPublished: checkboxValue(formData, "isPublished"),
+    },
+  });
+
+  updateTag("site-content");
+  revalidatePath("/team");
+  revalidatePath("/");
+  redirect("/admin");
+}
+
+export async function updateTeamMemberAction(id: number, formData: FormData) {
+  await requireAdmin();
+  const name = stringValue(formData, "name");
+  if (!id || !name) return;
+  const slug = stringValue(formData, "slug") || toSlug(name);
+  const imageUrl = stringValue(formData, "imageUrl") || null;
+
+  await prisma.teamMember.update({
+    where: { id },
+    data: {
+      name,
+      slug,
+      role: stringValue(formData, "role"),
+      sortOrder: intValue(formData, "sortOrder"),
+      imageUrl,
+      bio: stringValue(formData, "bio"),
+      instagram: stringValue(formData, "instagram") || null,
+      isPublished: checkboxValue(formData, "isPublished"),
+    },
+  });
+
+  updateTag("site-content");
+  revalidatePath("/team");
+  revalidatePath("/");
+  redirect("/admin");
+}
+
+export async function deleteTeamMemberAction(id: number) {
+  await requireAdmin();
+  await prisma.teamMember.delete({ where: { id } });
+  updateTag("site-content");
+  revalidatePath("/team");
+  revalidatePath("/");
+  redirect("/admin");
+}
+
+export async function saveConferenceSettingsAction(formData: FormData) {
+  await requireAdmin();
+
+  const current = await getPublicContent();
+  const settings = JSON.parse(JSON.stringify(current.settings)) as SiteSettings;
+  const conference = settings.conference;
+
+  conference.brandName = stringValue(formData, "brandName") || conference.brandName;
+  conference.shortName = stringValue(formData, "shortName") || conference.shortName;
+  conference.displayName = stringValue(formData, "displayName") || conference.displayName;
+  conference.fullName = stringValue(formData, "fullName") || conference.fullName;
+  conference.sessionName = stringValue(formData, "sessionName") || conference.sessionName;
+  conference.dates = stringValue(formData, "dates") || conference.dates;
+  conference.startDateIso = stringValue(formData, "startDateIso") || conference.startDateIso;
+  conference.year = intValue(formData, "year") || conference.year;
+  conference.hashtag = stringValue(formData, "hashtag") || conference.hashtag;
+  conference.siteUrl = stringValue(formData, "siteUrl") || conference.siteUrl;
+  conference.senderEmail = stringValue(formData, "senderEmail").trim() || conference.senderEmail;
+  conference.contactEmail = stringValue(formData, "contactEmail").trim() || conference.contactEmail;
+  conference.instagramUrl = stringValue(formData, "instagramUrl").trim() || conference.instagramUrl;
+  conference.instagramHandle = stringValue(formData, "instagramHandle").trim() || conference.instagramHandle;
+
+  if (conference.location) {
+    conference.location.venue = stringValue(formData, "venue") || conference.location.venue;
+    conference.location.city = stringValue(formData, "locationCity") || conference.location.city;
+    conference.location.country = stringValue(formData, "locationCountry") || conference.location.country;
+  }
+
+  if (conference.organizer) {
+    conference.organizer.name = stringValue(formData, "organizerName") || conference.organizer.name;
+  }
+
+  settings.form.minimumDelegates = Math.max(1, intValue(formData, "minimumDelegates") || settings.form.minimumDelegates);
+
+  settings.sections.about = checkboxValue(formData, "sectionAbout");
+  settings.sections.committees = checkboxValue(formData, "sectionCommittees");
+  settings.sections.team = checkboxValue(formData, "sectionTeam");
+  settings.sections.letters = checkboxValue(formData, "sectionLetters");
+  settings.sections.applications = checkboxValue(formData, "sectionApplications");
+  settings.sections.contact = checkboxValue(formData, "sectionContact");
+
+  for (const application of settings.applications) {
+    application.enabled = checkboxValue(formData, `application_${application.id}_enabled`);
+    application.title = stringValue(formData, `application_${application.id}_title`) || application.title;
+    application.formTitle = stringValue(formData, `application_${application.id}_formTitle`) || application.formTitle;
+    application.description = stringValue(formData, `application_${application.id}_description`) || application.description;
+  }
+
+  const questionTypes = Object.keys(settings.form.questions);
+  for (const type of questionTypes) {
+    const questions: QuestionDefinition[] = [];
+    const count = intValue(formData, `question_${type}_count`);
+    for (let index = 0; index < count; index += 1) {
+      const id = stringValue(formData, `question_${type}_${index}_id`).replace(/[^a-zA-Z0-9_]/g, "");
+      const label = stringValue(formData, `question_${type}_${index}_label`);
+      if (!id || !label) continue;
+      questions.push(
+        normalizeQuestionDefinition(
+          {
+            id,
+            label,
+            type: stringValue(formData, `question_${type}_${index}_type`) as QuestionType,
+            required: checkboxValue(formData, `question_${type}_${index}_required`),
+            placeholder: stringValue(formData, `question_${type}_${index}_placeholder`),
+            options: stringValue(formData, `question_${type}_${index}_options`)
+              .split(/\r?\n/)
+              .map((opt) => opt.trim())
+              .filter(Boolean),
+            minWords: Math.max(0, intValue(formData, `question_${type}_${index}_minWords`)),
+            minCharacters: Math.max(0, intValue(formData, `question_${type}_${index}_minCharacters`)),
+          },
+          id,
+          settings.form
+        )
+      );
+    }
+    settings.form.questions[type as keyof typeof settings.form.questions] = questions as any;
+  }
+
+  const letterCount = Math.max(0, intValue(formData, "lettersCount"));
+  settings.letters = Array.from({ length: letterCount }, (_, index) => {
+    const prefix = `letter_${index}`;
+    const paragraphs = stringValue(formData, `${prefix}_paragraphs`)
+      .split(/\r?\n\s*\r?\n/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    return {
+      id: stringValue(formData, `${prefix}_id`).replace(/[^a-zA-Z0-9_-]/g, "") || `letter-${index + 1}`,
+      titlePrefix: stringValue(formData, `${prefix}_titlePrefix`),
+      titleHighlight: stringValue(formData, `${prefix}_titleHighlight`),
+      opening: stringValue(formData, `${prefix}_opening`),
+      paragraphs,
+      author: stringValue(formData, `${prefix}_author`),
+    };
+  });
+
+  const normalized = normalizeSettings(settings);
+
+  await prisma.conferenceSettings.upsert({
+    where: { id: 1 },
+    create: { id: 1, data: normalized },
+    update: { data: normalized },
+  });
+
+  updateTag("site-content");
+  revalidatePath("/", "layout");
+  revalidatePath("/apply");
+  revalidatePath("/committees");
+  revalidatePath("/team");
+  for (const application of settings.applications) {
+    revalidatePath(`/apply/${application.id}`);
+  }
+
+  return { ok: true };
 }

@@ -1,23 +1,192 @@
-import { isAdmin } from "@/lib/admin-auth";
+import Link from "next/link";
+import { logoutAction, createCommitteeAction, createTeamMemberAction, saveConferenceSettingsAction } from "@/app/admin/actions";
+import AdminSettingsForm from "@/components/admin/AdminSettingsForm";
+import ImageUrlField from "@/components/admin/ImageUrlField";
+import NameAndSlugFields from "@/components/admin/NameAndSlugFields";
 import { DEFAULT_SETTINGS } from "@/config/conference";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/field";
-import ImageUpload from "@/components/ImageUpload";
-import LoginForm from "@/components/LoginForm";
-import { createCommittee, createTeamMember, deleteCommittee, deleteTeamMember, login, logout, saveSettings, updateCommittee, updateTeamMember } from "./actions";
+import { getPublicContent } from "@/lib/site-settings";
 
-export const metadata = { title: "Administration", robots: { index: false, follow: false } };
-export const instant = false;
+export const metadata = {
+  title: `Admin Dashboard | BUFALOMUN`,
+  robots: "noindex",
+};
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string; saved?: string }> }) {
-  const query = await searchParams;
-  if (!await isAdmin()) return <div className="site-container grid min-h-[70svh] place-items-center py-16"><LoginForm action={login} error={!!query.error} /></div>;
-  const [stored, committees, team] = await Promise.all([prisma.conferenceSettings.findUnique({ where: { id: 1 } }), prisma.committee.findMany({ orderBy: { sortOrder: "asc" } }), prisma.teamMember.findMany({ orderBy: { sortOrder: "asc" } })]);
-  const settings = stored?.data || DEFAULT_SETTINGS;
-  return <div className="site-container py-12"><div className="flex flex-wrap items-end justify-between gap-5"><div><p className="eyebrow text-[var(--red)]">BUFALOMUN</p><h1 className="mt-2 font-display text-6xl">Content administration</h1></div><form action={logout}><Button variant="secondary" type="submit">Sign out</Button></form></div>{query.saved && <p className="mt-6 border-l-4 border-green-700 bg-green-50 p-4 text-sm font-bold text-green-800">Changes saved and published.</p>}
-    <section className="mt-14 border-t border-[var(--border)] pt-8"><h2 className="font-display text-4xl">Site settings</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">Edit conference details, section visibility, application copy and questions, and letters. Keep the JSON structure intact.</p><form action={saveSettings} className="mt-6"><Textarea name="settings" defaultValue={JSON.stringify(settings, null, 2)} className="min-h-[36rem] font-mono text-xs" spellCheck={false} required />{query.error === "json" && <p className="mt-2 text-sm text-red-700">The settings JSON is invalid.</p>}<Button type="submit" className="mt-4">Publish settings</Button></form></section>
-    <div className="mt-16 grid gap-14 lg:grid-cols-2"><section><h2 className="font-display text-4xl">Committees</h2><form action={createCommittee} className="mt-6 grid gap-3 rounded-lg border border-[var(--border)] bg-white p-5"><Input name="name" placeholder="Committee name" required /><ImageUpload /><Textarea name="description" placeholder="Description" required /><label className="flex items-center gap-2 text-sm"><input name="isPublished" type="checkbox" defaultChecked /> Published</label><Button type="submit">Add committee</Button></form><div className="mt-5 space-y-4">{committees.map((item) => <form key={item.id} action={updateCommittee} className="grid gap-3 border border-[var(--border)] bg-white p-4"><input type="hidden" name="id" value={item.id} /><Input name="name" defaultValue={item.name} required /><ImageUpload defaultValue={item.imageUrl || ""} /><Textarea name="description" defaultValue={item.description} required /><label className="flex items-center gap-2 text-sm"><input name="isPublished" type="checkbox" defaultChecked={item.isPublished} /> Published</label><div className="flex gap-2"><Button type="submit">Save</Button><Button type="submit" variant="danger" formAction={deleteCommittee}>Delete</Button></div></form>)}</div></section>
-    <section><h2 className="font-display text-4xl">Secretariat</h2><form action={createTeamMember} className="mt-6 grid gap-3 rounded-lg border border-[var(--border)] bg-white p-5"><Input name="name" placeholder="Full name" required /><Input name="role" placeholder="Role" required /><ImageUpload /><Input name="instagram" type="url" placeholder="Instagram URL (optional)" /><Textarea name="bio" placeholder="Biography" required /><label className="flex items-center gap-2 text-sm"><input name="isPublished" type="checkbox" defaultChecked /> Published</label><Button type="submit">Add team member</Button></form><div className="mt-5 space-y-4">{team.map((item) => <form key={item.id} action={updateTeamMember} className="grid gap-3 border border-[var(--border)] bg-white p-4"><input type="hidden" name="id" value={item.id} /><Input name="name" defaultValue={item.name} required /><Input name="role" defaultValue={item.role} required /><ImageUpload defaultValue={item.imageUrl || ""} /><Input name="instagram" type="url" defaultValue={item.instagram || ""} placeholder="Instagram URL" /><Textarea name="bio" defaultValue={item.bio} required /><label className="flex items-center gap-2 text-sm"><input name="isPublished" type="checkbox" defaultChecked={item.isPublished} /> Published</label><div className="flex gap-2"><Button type="submit">Save</Button><Button type="submit" variant="danger" formAction={deleteTeamMember}>Delete</Button></div></form>)}</div></section></div>
-  </div>;
+function Field({
+  label,
+  name,
+  type = "text",
+  required = false,
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="flex flex-col gap-2 text-sm text-white">
+      {label}
+      <input
+        name={name}
+        type={type}
+        required={required}
+        className="rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white outline-none focus:border-[var(--color-accent)]"
+      />
+    </label>
+  );
+}
+
+function Textarea({
+  label,
+  name,
+  required = false,
+  rows = 6,
+}: {
+  label: string;
+  name: string;
+  required?: boolean;
+  rows?: number;
+}) {
+  return (
+    <label className="flex flex-col gap-2 text-sm text-white">
+      {label}
+      <textarea
+        name={name}
+        rows={rows}
+        required={required}
+        className="rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-white outline-none focus:border-[var(--color-accent)]"
+      />
+    </label>
+  );
+}
+
+export default async function AdminPage() {
+  await requireAdmin();
+
+  const [committees, team, publicContent] = await Promise.all([
+    prisma.committee.findMany({ orderBy: [{ sortOrder: "asc" }, { id: "asc" }] }),
+    prisma.teamMember.findMany({ orderBy: [{ sortOrder: "asc" }, { id: "asc" }] }),
+    getPublicContent(),
+  ]);
+
+  const settings = publicContent.settings || DEFAULT_SETTINGS;
+
+  return (
+    <main className="min-h-screen bg-[var(--background)] px-4 py-10 text-white">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-[var(--color-accent)] font-bold">
+              {settings.conference.shortName || "BUFALOMUN'26"}
+            </p>
+            <h1 className="text-4xl font-bold">Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <form action={logoutAction}>
+              <button className="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition">
+                Logout
+              </button>
+            </form>
+          </div>
+        </header>
+
+        {/* Existing Committees and Team Member Cards */}
+        <section className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-black/25 p-6">
+            <h2 className="mb-4 text-2xl font-bold">Committees</h2>
+            <div className="space-y-3">
+              {committees.map((committee) => (
+                <div key={committee.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-4 py-3">
+                  <div>
+                    <p className="font-semibold">{committee.name}</p>
+                    <p className="text-xs text-white/60">{committee.isPublished ? "Published" : "Draft"}</p>
+                  </div>
+                  <Link
+                    className="rounded-md border border-white/20 px-3 py-1 text-sm font-semibold text-[var(--color-accent)] hover:border-[var(--color-accent)] hover:bg-white/5 transition"
+                    href={`/admin/committees/${committee.id}`}
+                  >
+                    Edit
+                  </Link>
+                </div>
+              ))}
+              {committees.length === 0 && <p className="text-sm text-white/60">No committees yet.</p>}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-black/25 p-6">
+            <h2 className="mb-4 text-2xl font-bold">Secretariat & Team</h2>
+            <div className="space-y-3">
+              {team.map((member) => (
+                <div key={member.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-4 py-3">
+                  <div>
+                    <p className="font-semibold">{member.name}</p>
+                    {member.role && <p className="text-xs text-white/60">{member.role}</p>}
+                  </div>
+                  <Link
+                    className="rounded-md border border-white/20 px-3 py-1 text-sm font-semibold text-[var(--color-accent)] hover:border-[var(--color-accent)] hover:bg-white/5 transition"
+                    href={`/admin/team/${member.id}`}
+                  >
+                    Edit
+                  </Link>
+                </div>
+              ))}
+              {team.length === 0 && <p className="text-sm text-white/60">No team members yet.</p>}
+            </div>
+          </div>
+        </section>
+
+        {/* Creation Forms */}
+        <section className="grid gap-6 lg:grid-cols-2">
+          <form action={createCommitteeAction} className="flex flex-col gap-4 rounded-xl border border-white/10 bg-black/25 p-6">
+            <h2 className="text-2xl font-bold">New Committee</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <NameAndSlugFields basePath="/committees" />
+              <Field label="Sort Order" name="sortOrder" type="number" />
+              <ImageUrlField name="imageUrl" id="committee-image-url" required />
+            </div>
+            <Textarea label="Description" name="description" required />
+            <Textarea label="Documents, one per line: Title | URL" name="documents" rows={3} />
+            <label className="flex items-center gap-2 text-sm text-white">
+              <input name="isPublished" type="checkbox" defaultChecked />
+              Published
+            </label>
+            <button className="rounded-lg bg-[var(--color-accent)] px-4 py-3 font-bold text-white hover:bg-white hover:text-black transition">
+              Create Committee
+            </button>
+          </form>
+
+          <form action={createTeamMemberAction} className="flex flex-col gap-4 rounded-xl border border-white/10 bg-black/25 p-6">
+            <h2 className="text-2xl font-bold">New Secretariat / Team Member</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <NameAndSlugFields basePath="/team" />
+              <Field label="Role" name="role" required />
+              <Field label="Sort Order" name="sortOrder" type="number" />
+              <ImageUrlField name="imageUrl" id="team-image-url" required />
+              <Field label="Instagram URL" name="instagram" type="url" />
+            </div>
+            <Textarea label="Biography" name="bio" required />
+            <label className="flex items-center gap-2 text-sm text-white">
+              <input name="isPublished" type="checkbox" defaultChecked />
+              Published
+            </label>
+            <button className="rounded-lg bg-[var(--color-accent)] px-4 py-3 font-bold text-white hover:bg-white hover:text-black transition">
+              Create Member
+            </button>
+          </form>
+        </section>
+
+        {/* Site Settings Visual Editor */}
+        <section id="conference-settings" className="flex flex-col gap-6">
+          <div>
+            <h2 className="text-3xl font-bold">Site Settings</h2>
+            <p className="mt-2 text-sm text-white/65">
+              Conference content, applications, letters, visibility, and form questions are managed here visually.
+            </p>
+          </div>
+          <AdminSettingsForm settings={settings} action={saveConferenceSettingsAction} />
+        </section>
+      </div>
+    </main>
+  );
 }

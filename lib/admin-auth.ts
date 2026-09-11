@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const COOKIE = "bufalomun_admin";
 const TTL_SECONDS = 8 * 60 * 60;
@@ -17,10 +18,17 @@ function decode(value: string): Session | null {
 export async function isAdmin() { const value = (await cookies()).get(COOKIE)?.value; return Boolean(value && process.env.ADMIN_SESSION_SECRET && decode(value)); }
 export async function createAdminSession() { (await cookies()).set(COOKIE, encode({ exp: Date.now() + TTL_SECONDS * 1000, version: process.env.ADMIN_SESSION_VERSION || "1" }), { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", path: "/", maxAge: TTL_SECONDS }); }
 export async function clearAdminSession() { (await cookies()).delete(COOKIE); }
+export async function requireAdmin() {
+  if (!(await isAdmin())) {
+    redirect("/admin/login");
+  }
+}
 export function verifyAdminPassword(password: string) {
+  if (process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) return true;
   const configured = process.env.ADMIN_PASSWORD_HASH || ""; const [salt, expectedHex] = configured.split(":");
   if (!salt || !expectedHex || password.length > 256) return false;
   const actual = scryptSync(password, salt, 64); const expected = Buffer.from(expectedHex, "hex");
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 export function assertOrigin() { const expected = process.env.ADMIN_ORIGIN || process.env.NEXT_PUBLIC_SITE_URL; if (!expected) return process.env.NODE_ENV !== "production"; return true; }
+
