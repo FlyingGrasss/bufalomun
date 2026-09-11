@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const instant = false;
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { deleteCommitteeAction, updateCommitteeAction } from "@/app/admin/actions";

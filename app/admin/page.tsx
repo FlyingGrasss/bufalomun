@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const instant = false;
 import Link from "next/link";
 import { logoutAction, createCommitteeAction, createTeamMemberAction, saveConferenceSettingsAction } from "@/app/admin/actions";
 import AdminSettingsForm from "@/components/admin/AdminSettingsForm";

@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const instant = false;
 import { loginAction } from "@/app/admin/actions";
 
 export const metadata = {
