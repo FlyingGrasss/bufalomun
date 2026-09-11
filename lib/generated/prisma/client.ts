@@ -66,3 +66,8 @@ export type VerificationChallenge = Prisma.VerificationChallengeModel
  * 
  */
 export type SubmissionClaim = Prisma.SubmissionClaimModel
+/**
+ * Model ApplicationSubmission
+ * 
+ */
+export type ApplicationSubmission = Prisma.ApplicationSubmissionModel

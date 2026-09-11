@@ -35,7 +35,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ typ
   try {
     await appendApplication(type, result.payload, claim.id, settings);
     await prisma.$transaction([
-      prisma.submissionClaim.update({ where: { email_applicationType: { email: result.email, applicationType: type } }, data: { status: "COMPLETED", completedAt: new Date() } }),
+      prisma.submissionClaim.update({
+        where: { email_applicationType: { email: result.email, applicationType: type } },
+        data: { status: "COMPLETED", completedAt: new Date() },
+      }),
+      prisma.applicationSubmission.create({
+        data: {
+          email: result.email,
+          applicationType: type,
+          payload: result.payload as any,
+          claimId: claim.id,
+        },
+      }),
       prisma.verificationChallenge.delete({ where: { id: challenge.id } }),
     ]);
     return NextResponse.json({ ok: true });

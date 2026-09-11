@@ -401,7 +401,8 @@ export const ModelName = {
   Committee: 'Committee',
   TeamMember: 'TeamMember',
   VerificationChallenge: 'VerificationChallenge',
-  SubmissionClaim: 'SubmissionClaim'
+  SubmissionClaim: 'SubmissionClaim',
+  ApplicationSubmission: 'ApplicationSubmission'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "conferenceSettings" | "committee" | "teamMember" | "verificationChallenge" | "submissionClaim"
+    modelProps: "conferenceSettings" | "committee" | "teamMember" | "verificationChallenge" | "submissionClaim" | "applicationSubmission"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -791,6 +792,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ApplicationSubmission: {
+      payload: Prisma.$ApplicationSubmissionPayload<ExtArgs>
+      fields: Prisma.ApplicationSubmissionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ApplicationSubmissionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ApplicationSubmissionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>
+        }
+        findFirst: {
+          args: Prisma.ApplicationSubmissionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ApplicationSubmissionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>
+        }
+        findMany: {
+          args: Prisma.ApplicationSubmissionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>[]
+        }
+        create: {
+          args: Prisma.ApplicationSubmissionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>
+        }
+        createMany: {
+          args: Prisma.ApplicationSubmissionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ApplicationSubmissionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>[]
+        }
+        delete: {
+          args: Prisma.ApplicationSubmissionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>
+        }
+        update: {
+          args: Prisma.ApplicationSubmissionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ApplicationSubmissionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ApplicationSubmissionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ApplicationSubmissionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ApplicationSubmissionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApplicationSubmissionPayload>
+        }
+        aggregate: {
+          args: Prisma.ApplicationSubmissionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateApplicationSubmission>
+        }
+        groupBy: {
+          args: Prisma.ApplicationSubmissionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApplicationSubmissionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ApplicationSubmissionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApplicationSubmissionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -902,6 +977,19 @@ export const SubmissionClaimScalarFieldEnum = {
 } as const
 
 export type SubmissionClaimScalarFieldEnum = (typeof SubmissionClaimScalarFieldEnum)[keyof typeof SubmissionClaimScalarFieldEnum]
+
+
+export const ApplicationSubmissionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  applicationType: 'applicationType',
+  payload: 'payload',
+  claimId: 'claimId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ApplicationSubmissionScalarFieldEnum = (typeof ApplicationSubmissionScalarFieldEnum)[keyof typeof ApplicationSubmissionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1204,6 +1292,7 @@ export type GlobalOmitConfig = {
   teamMember?: Prisma.TeamMemberOmit
   verificationChallenge?: Prisma.VerificationChallengeOmit
   submissionClaim?: Prisma.SubmissionClaimOmit
+  applicationSubmission?: Prisma.ApplicationSubmissionOmit
 }
 
 /* Types for Logging */

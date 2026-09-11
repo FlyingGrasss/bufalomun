@@ -73,6 +73,20 @@ model SubmissionClaim {
   @@index([status, updatedAt])
 }
 
+model ApplicationSubmission {
+  id              String   @id @default(cuid())
+  email           String
+  applicationType String
+  payload         Json
+  claimId         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([applicationType])
+  @@index([createdAt])
+}
+
 enum SubmissionStatus {
   PROCESSING
   FAILED

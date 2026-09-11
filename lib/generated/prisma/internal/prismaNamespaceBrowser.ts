@@ -55,7 +55,8 @@ export const ModelName = {
   Committee: 'Committee',
   TeamMember: 'TeamMember',
   VerificationChallenge: 'VerificationChallenge',
-  SubmissionClaim: 'SubmissionClaim'
+  SubmissionClaim: 'SubmissionClaim',
+  ApplicationSubmission: 'ApplicationSubmission'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -146,6 +147,19 @@ export const SubmissionClaimScalarFieldEnum = {
 } as const
 
 export type SubmissionClaimScalarFieldEnum = (typeof SubmissionClaimScalarFieldEnum)[keyof typeof SubmissionClaimScalarFieldEnum]
+
+
+export const ApplicationSubmissionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  applicationType: 'applicationType',
+  payload: 'payload',
+  claimId: 'claimId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ApplicationSubmissionScalarFieldEnum = (typeof ApplicationSubmissionScalarFieldEnum)[keyof typeof ApplicationSubmissionScalarFieldEnum]
 
 
 export const SortOrder = {
