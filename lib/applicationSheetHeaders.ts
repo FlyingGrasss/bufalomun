@@ -1,4 +1,4 @@
-﻿import { isInternalQuestionKey, type QuestionDefinition, type QuestionGroups } from "@/lib/questions";
+import { isInternalQuestionKey, type QuestionDefinition, type QuestionGroups } from "@/lib/questions";
 
 export type FormRules = {
   minimumDelegates: number;
@@ -21,7 +21,7 @@ function questionMap(questions: QuestionGroups, type: string) {
 }
 
 function labelsForQuestions(questions: QuestionDefinition[], _rules: FormRules) {
-  const labels: string[] = ["Submission ID", "Submitted At"];
+  const labels: string[] = ["Submitted At"];
   for (const question of questions) {
     if (!question.label || isInternalQuestionKey(question.id)) continue;
     labels.push(question.label);
@@ -38,7 +38,6 @@ export function getApplicationSheetHeaders(questions: QuestionGroups, rules: For
       const summaryQuestions = list.slice(0, 3);
       const memberQuestions = list.slice(3);
       const headers = [
-        "Submission ID",
         "Submitted At",
         "Delegate #",
         ...summaryQuestions.map((q) => q.label),

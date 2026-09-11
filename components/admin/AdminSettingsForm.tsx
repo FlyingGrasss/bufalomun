@@ -556,10 +556,7 @@ export default function AdminSettingsForm({
             <Field label="Session name" name="sessionName" value={settings.conference.sessionName} required />
             <Field label="Hashtag" name="hashtag" value={settings.conference.hashtag} required />
             <Field label="Site URL" name="siteUrl" value={settings.conference.siteUrl} required />
-            <div className="flex flex-col gap-2">
-              <Field label="Email sender" name="senderEmail" type="email" value={settings.conference.senderEmail} required />
-              <span className="text-xs text-white/55">Address from domain verified in Resend. Default is onboarding@resend.dev</span>
-            </div>
+            <Field label="Email sender" name="senderEmail" type="email" value={settings.conference.senderEmail} required />
             <Field label="Contact email" name="contactEmail" type="email" value={settings.conference.contactEmail} />
             <Field label="Instagram URL" name="instagramUrl" value={settings.conference.instagramUrl} />
             <Field label="Instagram handle" name="instagramHandle" value={settings.conference.instagramHandle} />

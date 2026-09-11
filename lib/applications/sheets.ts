@@ -11,33 +11,31 @@ function getHeaders(type: ApplicationType, settings: SiteSettings): string[] {
   if (type === "delegation") {
     const summaryQuestions = questions.slice(0, 3);
     const memberQuestions = questions.slice(3);
-    return ["Submission ID", "Submitted At", "Delegate #", ...summaryQuestions.map((q) => q.label), ...memberQuestions.map((q) => q.label)];
+    return ["Submitted At", "Delegate #", ...summaryQuestions.map((q) => q.label), ...memberQuestions.map((q) => q.label)];
   }
-  return ["Submission ID", "Submitted At", ...questions.map((q) => q.label)];
+  return ["Submitted At", ...questions.map((q) => q.label)];
 }
 
 async function ensureHeaderRow(sheets: ReturnType<typeof google.sheets>, spreadsheetId: string, type: ApplicationType, settings: SiteSettings) {
   const res = await sheets.spreadsheets.values.get({ spreadsheetId, range: "Applications!1:1" });
   const firstRow = res.data.values?.[0];
-  if (!firstRow || firstRow[0] !== "Submission ID") {
+  if (!firstRow || firstRow[0] !== "Submitted At") {
     await sheets.spreadsheets.values.update({ spreadsheetId, range: "Applications!A1", valueInputOption: "RAW", requestBody: { values: [getHeaders(type, settings)] } });
   }
 }
 
-export async function appendApplication(type: ApplicationType, payload: ApplicationPayload, submissionId: string, settings: SiteSettings = DEFAULT_SETTINGS) {
+export async function appendApplication(type: ApplicationType, payload: ApplicationPayload, _submissionId: string, settings: SiteSettings = DEFAULT_SETTINGS) {
   const spreadsheetId = process.env[envNames[type]];
   const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, "\n");
   if (!spreadsheetId || !clientEmail || !privateKey) throw new Error("SHEETS_NOT_CONFIGURED");
   const auth = new google.auth.GoogleAuth({ credentials: { client_email: clientEmail, private_key: privateKey }, scopes: ["https://www.googleapis.com/auth/spreadsheets"] });
   const sheets = google.sheets({ version: "v4", auth });
-  const existing = await sheets.spreadsheets.values.get({ spreadsheetId, range: "Applications!A:A" });
-  if ((existing.data.values || []).some((row) => row[0] === submissionId)) return;
   await ensureHeaderRow(sheets, spreadsheetId, type, settings);
   const submittedAt = new Date().toISOString();
   const rows = type === "delegation"
-    ? (payload.delegates || []).map((delegate, index) => [submissionId, submittedAt, index + 1, ...Object.values(payload.summary || {}), ...Object.values(delegate)])
-    : [[submissionId, submittedAt, ...Object.values(payload.answers || {})]];
+    ? (payload.delegates || []).map((delegate, index) => [submittedAt, index + 1, ...Object.values(payload.summary || {}), ...Object.values(delegate)])
+    : [[submittedAt, ...Object.values(payload.answers || {})]];
   await sheets.spreadsheets.values.append({ spreadsheetId, range: "Applications!A:ZZ", valueInputOption: "RAW", insertDataOption: "INSERT_ROWS", requestBody: { values: rows } });
 }
 

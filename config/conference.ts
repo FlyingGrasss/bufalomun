@@ -118,7 +118,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     year: 2026,
     hashtag: "#Bestinthewest",
     siteUrl: "https://bufalomun.vercel.app",
-    contactEmail: "Email to be announced",
+    contactEmail: "contact@bufalomun.org",
     senderEmail: "onboarding@resend.dev",
     instagramUrl: "https://www.instagram.com/bufalo.mun/",
     instagramHandle: "@bufalo.mun",
