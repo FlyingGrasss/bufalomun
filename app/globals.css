@@ -32,10 +32,6 @@ button, input, textarea, select { font: inherit; }
 .site-container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
 .section-shell { padding-block: clamp(5rem, 10vw, 9rem); }
 .eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
-.hero-background {
-  background: linear-gradient(to bottom, var(--charcoal) 0%, var(--charcoal) 42%, var(--brown) 56%, var(--brown) 100%);
-  opacity: .6;
-}
 .link-underline { text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-decoration-thickness: 1px; }
 .link-underline:hover { text-decoration-color: currentColor; }
 .skip-link { position: fixed; z-index: 100; left: 1rem; top: -6rem; background: white; color: black; padding: .75rem 1rem; }
@@ -48,8 +44,4 @@ button, input, textarea, select { font: inherit; }
 
 @media (min-width: 1024px) {
   :root { --nav-height: 5rem; }
-  .hero-background {
-    background: var(--brown);
-    opacity: .45;
-  }
 }
