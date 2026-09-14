@@ -29,7 +29,7 @@ export default async function Home() {
     <>
       <StructuredData settings={settings} />
       <section id="top" className="relative isolate min-h-[calc(100svh-var(--nav-height))] overflow-hidden bg-[var(--charcoal)] text-white">
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-[42%] bg-[var(--brown)] opacity-60 lg:inset-y-0 lg:left-auto lg:right-0 lg:h-auto lg:w-[46%] lg:opacity-45" />
+        <div aria-hidden="true" className="hero-background absolute inset-0 -z-10 lg:inset-y-0 lg:left-auto lg:right-0 lg:h-auto lg:w-[46%]" />
         <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-[18%] -z-10 size-72 rounded-full border border-white/10 opacity-50 sm:size-96 lg:right-[-8rem] lg:top-[16%]" />
         <div className="site-container grid min-h-[calc(100svh-var(--nav-height))] items-start gap-10 py-10 sm:items-center sm:gap-12 sm:py-14 lg:grid-cols-[1fr_25rem]">
           <FadeIn delay={100}>
