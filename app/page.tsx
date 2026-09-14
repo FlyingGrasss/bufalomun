@@ -28,13 +28,14 @@ export default async function Home() {
   return (
     <>
       <StructuredData settings={settings} />
-      <section id="top" className="relative isolate min-h-[calc(100svh-5rem)] overflow-hidden bg-[var(--charcoal)] text-white">
-        <div className="absolute inset-y-0 right-0 -z-10 w-[46%] bg-[var(--brown)] opacity-45" />
-        <div className="site-container grid min-h-[calc(100svh-5rem)] items-center gap-12 py-14 lg:grid-cols-[1fr_25rem]">
+      <section id="top" className="relative isolate min-h-[calc(100svh-var(--nav-height))] overflow-hidden bg-[var(--charcoal)] text-white">
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-[42%] bg-[var(--brown)] opacity-60 lg:inset-y-0 lg:left-auto lg:right-0 lg:h-auto lg:w-[46%] lg:opacity-45" />
+        <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-[18%] -z-10 size-72 rounded-full border border-white/10 opacity-50 sm:size-96 lg:right-[-8rem] lg:top-[16%]" />
+        <div className="site-container grid min-h-[calc(100svh-var(--nav-height))] items-start gap-10 py-10 sm:items-center sm:gap-12 sm:py-14 lg:grid-cols-[1fr_25rem]">
           <FadeIn delay={100}>
             <div>
               <p className="eyebrow text-[var(--red)]">{settings.conference.fullName}</p>
-              <h1 className="mt-7 font-display text-[clamp(5rem,15vw,11rem)] leading-[.75] tracking-[-.04em]">
+              <h1 className="mt-7 font-display text-[clamp(4.5rem,18vw,11rem)] leading-[.75] tracking-[-.04em] sm:text-[clamp(5rem,15vw,11rem)]">
                 BUFALO<span className="block text-[var(--buffalo)]">MUN<span className="text-[var(--red)]">’26</span></span>
               </h1>
               <div className="mt-10 flex flex-wrap gap-x-10 gap-y-4 text-sm font-bold uppercase tracking-[.1em] text-white/78">

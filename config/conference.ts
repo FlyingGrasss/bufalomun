@@ -126,7 +126,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     organizer: {
       name: "BUFALOMUN Organization Team",
       creditName: "Emre Bozkurt",
-      creditUrl: "https://emre-bozkurt.vercel.app",
+      creditUrl: "https://www.instagram.com/emre.bozqurt/",
     },
   },
   sections: { about: true, letters: true, committees: true, team: true, applications: true, contact: true },

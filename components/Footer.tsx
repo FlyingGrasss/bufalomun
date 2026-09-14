@@ -4,9 +4,13 @@ import type { SiteSettings } from "@/types/conference";
 export default function Footer({ settings }: { settings: SiteSettings }) {
   const contactEmail = settings.conference.contactEmail?.trim() || "contact@bufalomun.org";
   const displayEmail = contactEmail.toLowerCase().includes("announced") ? "contact@bufalomun.org" : contactEmail;
+  const creditName = settings.conference.organizer.creditName?.trim() || "Emre Bozkurt";
+  const creditUrl = creditName.trim().toLowerCase() === "emre bozkurt"
+    ? "https://www.instagram.com/emre.bozqurt/"
+    : settings.conference.organizer.creditUrl;
 
   return (
-    <footer id="contact" className="bg-[var(--charcoal)] text-white scroll-mt-10">
+    <footer id="contact" className="scroll-mt-10 bg-[var(--charcoal)] text-white">
       <div className="site-container grid gap-12 py-16 md:grid-cols-2 md:items-end">
         <div>
           <p className="eyebrow text-[var(--red)]">Contact Us</p>
@@ -22,7 +26,9 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
               {settings.conference.instagramHandle || settings.conference.instagramUrl}
             </Link>
           )}
-          <p className="mt-5 text-xs uppercase tracking-[.15em] text-white/45">Website by <Link className="hover:text-white" href={settings.conference.organizer.creditUrl}>{settings.conference.organizer.creditName}</Link></p>
+          <p className="mt-5 text-xs uppercase tracking-[.15em] text-white/45">
+            Website by <Link className="hover:text-white" href={creditUrl} target="_blank" rel="noreferrer">{creditName}</Link>
+          </p>
         </div>
       </div>
     </footer>

@@ -2,6 +2,7 @@
 @import "lenis/dist/lenis.css";
 
 :root {
+  --nav-height: 4rem;
   --red: #e90238;
   --color-accent: #e90238;
   --background: #141211;
@@ -21,7 +22,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-padding-top: 5rem; }
+html { scroll-padding-top: var(--nav-height); }
 body { margin: 0; font-family: var(--font-manrope), sans-serif; }
 ::selection { background: var(--red); color: white; }
 a { text-underline-offset: .22em; }
@@ -39,4 +40,8 @@ button, input, textarea, select { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+@media (min-width: 1024px) {
+  :root { --nav-height: 5rem; }
 }
