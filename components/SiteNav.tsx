@@ -74,7 +74,7 @@ export default function SiteNav({ enabled }: { enabled: Record<string, boolean> 
           className="flex items-center gap-2.5 font-extrabold tracking-[.12em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--red)] lg:gap-3"
           aria-label="BUFALOMUN home"
         >
-          <Image src="/logo.jpg" alt="" width={46} height={46} className="size-10 rounded-full object-cover lg:size-11" priority />
+          <Image src="/logo.jpg" alt="" width={46} height={46} className="size-10 object-contain lg:size-11" priority />
           <span className="text-sm lg:text-base">BUFALOMUN</span>
         </Link>
         <nav className="hidden items-center gap-7 lg:flex" aria-label="Main navigation">
