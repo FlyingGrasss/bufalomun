@@ -24,6 +24,11 @@ function checkboxValue(formData: FormData, key: string) {
   return formData.get(key) === "on";
 }
 
+function revalidateSiteMetadata() {
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/robots.txt");
+}
+
 export async function loginAction(formData: FormData) {
   const password = stringValue(formData, "password");
 
@@ -59,6 +64,7 @@ export async function createCommitteeAction(formData: FormData) {
   });
 
   updateTag("site-content");
+  revalidateSiteMetadata();
   revalidatePath("/committees");
   revalidatePath("/");
   redirect("/admin");
@@ -85,6 +91,7 @@ export async function updateCommitteeAction(id: number, formData: FormData) {
   });
 
   updateTag("site-content");
+  revalidateSiteMetadata();
   revalidatePath("/committees");
   revalidatePath("/");
   redirect("/admin");
@@ -94,6 +101,7 @@ export async function deleteCommitteeAction(id: number) {
   await requireAdmin();
   await prisma.committee.delete({ where: { id } });
   updateTag("site-content");
+  revalidateSiteMetadata();
   revalidatePath("/committees");
   revalidatePath("/");
   redirect("/admin");
@@ -119,6 +127,7 @@ export async function createTeamMemberAction(formData: FormData) {
   });
 
   updateTag("site-content");
+  revalidateSiteMetadata();
   revalidatePath("/team");
   revalidatePath("/");
   redirect("/admin");
@@ -146,6 +155,7 @@ export async function updateTeamMemberAction(id: number, formData: FormData) {
   });
 
   updateTag("site-content");
+  revalidateSiteMetadata();
   revalidatePath("/team");
   revalidatePath("/");
   redirect("/admin");
@@ -155,6 +165,7 @@ export async function deleteTeamMemberAction(id: number) {
   await requireAdmin();
   await prisma.teamMember.delete({ where: { id } });
   updateTag("site-content");
+  revalidateSiteMetadata();
   revalidatePath("/team");
   revalidatePath("/");
   redirect("/admin");
@@ -265,6 +276,7 @@ export async function saveConferenceSettingsAction(formData: FormData) {
   });
 
   updateTag("site-content");
+  revalidateSiteMetadata();
   revalidatePath("/", "layout");
   revalidatePath("/apply");
   revalidatePath("/committees");
