@@ -3,8 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getPublicContent, getTeamMemberBySlug } from "@/lib/site-settings";
-import { pageMetadata } from "@/lib/seo";
+import { getTeamMemberBySlug } from "@/lib/site-settings";
 
 import FadeIn from "@/components/FadeIn";
 
@@ -12,18 +11,8 @@ export const instant = false;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const [{ settings }, item] = await Promise.all([getPublicContent(), getTeamMemberBySlug(slug)]);
-  if (!item) notFound();
-
-  return pageMetadata({
-    settings,
-    title: item.name,
-    description: `${item.name} is ${item.role} on the ${settings.conference.displayName} team. ${item.bio}`,
-    path: `/team/${item.slug}`,
-    imageUrl: item.imageUrl,
-    imageAlt: `${item.name}, ${item.role} at ${settings.conference.displayName}`,
-    keywords: [item.name, item.role, "secretariat", "MUN team"],
-  });
+  const item = await getTeamMemberBySlug(slug);
+  return { title: item?.name || "Team", description: item?.bio };
 }
 
 export default async function TeamPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -40,7 +29,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
       <div className="mt-12 grid gap-12 lg:grid-cols-[24rem_1fr]">
         <FadeIn delay={120} className="relative aspect-[4/5] bg-[var(--buffalo)]">
           {item.imageUrl ? (
-            <Image src={item.imageUrl} alt={`${item.name}, ${item.role}`} fill unoptimized className="object-cover" sizes="400px" />
+            <Image src={item.imageUrl} alt="" fill unoptimized className="object-cover" sizes="400px" />
           ) : (
             <div className="grid size-full place-items-center font-display text-8xl text-[var(--brown)]">{item.name.charAt(0)}</div>
           )}

@@ -8,7 +8,6 @@ type PublicContent = {
   settings: SiteSettings;
   committees: PublicCommittee[];
   team: PublicTeamMember[];
-  settingsUpdatedAt: string | null;
 };
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -60,7 +59,7 @@ function parseDocuments(value: unknown): PublicCommittee["documents"] {
 
 async function loadPublicContent(): Promise<PublicContent> {
   if (!process.env.DATABASE_URL) {
-    return { settings: structuredClone(DEFAULT_SETTINGS), committees: [], team: [], settingsUpdatedAt: null };
+    return { settings: structuredClone(DEFAULT_SETTINGS), committees: [], team: [] };
   }
 
   try {
@@ -75,11 +74,10 @@ async function loadPublicContent(): Promise<PublicContent> {
       settings: normalizeSettings(stored?.data),
       committees: committees.map((item) => ({ ...item, documents: parseDocuments(item.documents), updatedAt: item.updatedAt.toISOString() })),
       team: team.map((item) => ({ ...item, updatedAt: item.updatedAt.toISOString() })),
-      settingsUpdatedAt: stored?.updatedAt.toISOString() ?? null,
     };
   } catch (error) {
     console.error("[content] Falling back to built-in conference content", error instanceof Error ? error.name : "unknown");
-    return { settings: structuredClone(DEFAULT_SETTINGS), committees: [], team: [], settingsUpdatedAt: null };
+    return { settings: structuredClone(DEFAULT_SETTINGS), committees: [], team: [] };
   }
 }
 

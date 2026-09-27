@@ -4,25 +4,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import ApplicationForm from "@/components/ApplicationForm";
 import { getPublicContent } from "@/lib/site-settings";
-import { pageMetadata } from "@/lib/seo";
 import { isApplicationType } from "@/lib/applications/validation";
 
 export const instant = false;
 
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
-  const { type } = await params;
-  const { settings } = await getPublicContent();
-  const application = settings.applications.find((item) => item.id === type && item.enabled);
-  if (!application) notFound();
-
-  return pageMetadata({
-    settings,
-    title: application.formTitle,
-    description: `${application.description} Apply to ${settings.conference.displayName} as a ${application.title}.`,
-    path: `/apply/${application.id}`,
-    imageAlt: `${settings.conference.displayName} ${application.title} application`,
-    keywords: [application.title, "MUN application", "Model United Nations application"],
-  });
+  const { type } = await params; const { settings } = await getPublicContent();
+  const application = settings.applications.find((item) => item.id === type);
+  return { title: application?.formTitle || "Application" };
 }
 
 export default async function ApplicationPage({ params }: { params: Promise<{ type: string }> }) {
