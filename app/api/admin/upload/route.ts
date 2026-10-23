@@ -11,13 +11,22 @@ export async function POST(request: Request) {
   }
 
   const supabaseSecret = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseSecret) {
+  const supabaseUrl = process.env.SUPABASE_URL?.trim();
+  const projectRef =
+    process.env.SUPABASE_PROJECT_REF?.trim() ||
+    (() => {
+      try {
+        return supabaseUrl ? new URL(supabaseUrl).hostname.split(".")[0] : "";
+      } catch {
+        return "";
+      }
+    })();
+  if (!supabaseSecret || !projectRef) {
     return NextResponse.json(
-      { error: { code: "SERVICE_UNCONFIGURED", message: "Supabase service key is not configured." } },
+      { error: { code: "SERVICE_UNCONFIGURED", message: "Supabase storage is not configured." } },
       { status: 503 }
     );
   }
-  const projectRef = process.env.SUPABASE_PROJECT_REF || "ypiavkaiyeweqjycmwfx";
   const bucketName =
     process.env.SUPABASE_STORAGE_BUCKET || "bufalomun secretariat and committee images";
 

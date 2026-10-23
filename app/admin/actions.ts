@@ -178,7 +178,7 @@ export async function saveConferenceSettingsAction(formData: FormData) {
   conference.hashtag = stringValue(formData, "hashtag") || conference.hashtag;
   conference.siteUrl = stringValue(formData, "siteUrl") || conference.siteUrl;
   conference.senderEmail = stringValue(formData, "senderEmail").trim() || conference.senderEmail;
-  conference.contactEmail = stringValue(formData, "contactEmail").trim() || conference.contactEmail;
+  conference.contactEmail = stringValue(formData, "contactEmail").trim();
   conference.instagramUrl = stringValue(formData, "instagramUrl").trim() || conference.instagramUrl;
   conference.instagramHandle = stringValue(formData, "instagramHandle").trim() || conference.instagramHandle;
 
@@ -208,7 +208,7 @@ export async function saveConferenceSettingsAction(formData: FormData) {
     application.description = stringValue(formData, `application_${application.id}_description`) || application.description;
   }
 
-  const questionTypes = Object.keys(settings.form.questions);
+  const questionTypes = Object.keys(settings.form.questions) as (keyof typeof settings.form.questions)[];
   for (const type of questionTypes) {
     const questions: QuestionDefinition[] = [];
     const count = intValue(formData, `question_${type}_count`);
@@ -236,7 +236,7 @@ export async function saveConferenceSettingsAction(formData: FormData) {
         )
       );
     }
-    settings.form.questions[type as keyof typeof settings.form.questions] = questions as any;
+    settings.form.questions[type] = questions;
   }
 
   const letterCount = Math.max(0, intValue(formData, "lettersCount"));

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@/lib/generated/prisma/client";
 import { appendApplication } from "@/lib/applications/sheets";
 import { allowRequest, equalHash, hashCode, requestIp, sha256, stableJson } from "@/lib/applications/security";
 import { isApplicationType, validateApplication } from "@/lib/applications/validation";
@@ -43,7 +44,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ typ
         data: {
           email: result.email,
           applicationType: type,
-          payload: result.payload as any,
+          payload: JSON.parse(JSON.stringify(result.payload)) as Prisma.InputJsonValue,
           claimId: claim.id,
         },
       }),

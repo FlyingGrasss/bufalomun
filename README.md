@@ -1,6 +1,6 @@
 # BUFALOMUN’26
 
-The official site for the second session of Buca Science High School Model United Nations. It uses Next.js 16, PostgreSQL through Prisma, Resend verification emails, Google Sheets application delivery, Upstash rate limiting, and Vercel Blob uploads.
+The official site for the second session of Buca Science High School Model United Nations. It uses Next.js 16, PostgreSQL through Prisma, Resend verification emails, Google Sheets application delivery, Upstash rate limiting, and Supabase Storage uploads.
 
 ## Local development
 
@@ -10,6 +10,8 @@ The official site for the second session of Buca Science High School Model Unite
 4. Run `pnpm dev`.
 
 Create `ADMIN_PASSWORD_HASH` as `salt:hexhash`, where the hash is a 64-byte Node.js `scrypt` result. `ADMIN_SESSION_SECRET` and `APPLICATION_CODE_SECRET` should each be long random values. Share every configured Google Sheet with `GOOGLE_SERVICE_ACCOUNT_EMAIL`; submissions go to a tab named `Applications`.
+
+`RESEND_FROM` must use a sender on a domain verified in Resend, for example `BUFALOMUN <applications@bufalomun.org>`. The contact address shown on the site is separate from Resend and needs its own mailbox or forwarding. Admin image uploads use the Supabase Storage bucket configured by `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET`.
 
 ## Checks
 

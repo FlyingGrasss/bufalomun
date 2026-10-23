@@ -1,7 +1,23 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeToReducedMotion(onChange: () => void) {
+  const media = window.matchMedia(REDUCED_MOTION_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function getReducedMotionServerSnapshot() {
+  return false;
+}
 
 type FadeInProps = {
   children: React.ReactNode;
@@ -30,15 +46,15 @@ export default function FadeIn({
 }: FadeInProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const prefersReducedMotion = useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot
+  );
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setIsVisible(true);
-      return;
-    }
+    if (!element || prefersReducedMotion) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -57,10 +73,12 @@ export default function FadeIn({
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [once, threshold, rootMargin]);
+  }, [once, threshold, rootMargin, prefersReducedMotion]);
+
+  const visible = isVisible || prefersReducedMotion;
 
   const getTransform = () => {
-    if (isVisible) return "translate3d(0, 0, 0)";
+    if (visible) return "translate3d(0, 0, 0)";
     switch (direction) {
       case "up":
         return `translate3d(0, ${distance}px, 0)`;
@@ -81,13 +99,13 @@ export default function FadeIn({
       ref={ref}
       className={cn(className)}
       style={{
-        opacity: isVisible ? 1 : 0,
+        opacity: visible ? 1 : 0,
         transform: getTransform(),
         transitionProperty: "opacity, transform",
         transitionDuration: `${duration}ms`,
         transitionDelay: `${delay}ms`,
         transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
-        willChange: isVisible ? "auto" : "opacity, transform",
+        willChange: visible ? "auto" : "opacity, transform",
       }}
     >
       {children}

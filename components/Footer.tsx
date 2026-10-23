@@ -2,8 +2,7 @@ import Link from "next/link";
 import type { SiteSettings } from "@/types/conference";
 
 export default function Footer({ settings }: { settings: SiteSettings }) {
-  const contactEmail = settings.conference.contactEmail?.trim() || "contact@bufalomun.org";
-  const displayEmail = contactEmail.toLowerCase().includes("announced") ? "contact@bufalomun.org" : contactEmail;
+  const contactEmail = settings.conference.contactEmail?.trim();
   const creditName = settings.conference.organizer.creditName?.trim() || "Emre Bozkurt";
   const creditUrl = creditName.trim().toLowerCase() === "emre bozkurt"
     ? "https://www.instagram.com/emre.bozqurt/"
@@ -18,9 +17,11 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
           <p className="mt-6 max-w-lg text-white/65">{settings.conference.dates} · {settings.conference.location.venue}</p>
         </div>
         <div className="flex flex-col items-start gap-3 md:items-end">
-          <Link className="link-underline text-lg font-bold text-white hover:text-[var(--red)]" href={`mailto:${displayEmail}`}>
-            {displayEmail}
-          </Link>
+          {contactEmail && (
+            <Link className="link-underline text-lg font-bold text-white hover:text-[var(--red)]" href={`mailto:${contactEmail}`}>
+              {contactEmail}
+            </Link>
+          )}
           {settings.conference.instagramUrl && (
             <Link className="link-underline text-sm text-white/80 hover:text-white" href={settings.conference.instagramUrl} target="_blank" rel="noreferrer">
               {settings.conference.instagramHandle || settings.conference.instagramUrl}
