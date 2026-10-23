@@ -14,16 +14,18 @@ type DialogContentProps = {
   description?: string;
   children: ReactNode;
   className?: string;
+  backdropClassName?: string;
   id?: string;
   variant?: "default" | "drawer";
+  dismissible?: boolean;
 };
 
-export function DialogContent({ title, description, children, className, id, variant = "default" }: DialogContentProps) {
+export function DialogContent({ title, description, children, className, backdropClassName, id, variant = "default", dismissible = true }: DialogContentProps) {
   const isDrawer = variant === "drawer";
 
   return (
     <Dialog.Portal>
-      <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/65 transition-opacity data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+      <Dialog.Backdrop className={cn("fixed inset-0 z-50 bg-black/65 transition-opacity data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none", backdropClassName)} />
       <Dialog.Viewport className={cn(
         "fixed inset-0 z-[60] overflow-y-auto",
         isDrawer ? "flex items-stretch justify-end p-0 sm:p-4" : "grid place-items-center p-4",
@@ -36,14 +38,16 @@ export function DialogContent({ title, description, children, className, id, var
             className,
           )}
         >
-          <Dialog.Title className="pr-10 font-display text-3xl leading-none">{title}</Dialog.Title>
+          <Dialog.Title className={cn("font-display text-3xl leading-none", dismissible && "pr-10")}>{title}</Dialog.Title>
           {description ? <Dialog.Description className={cn("mt-3 text-sm leading-6", isDrawer ? "text-white/60" : "text-[var(--muted)]")}>{description}</Dialog.Description> : null}
-          <Dialog.Close aria-label="Close dialog" className={cn(
-            "absolute right-4 top-4 grid size-10 place-items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)]",
-            isDrawer ? "text-white/65 hover:bg-white/10 hover:text-white" : "text-[var(--muted)] hover:bg-black/5",
-          )}>
-            <X aria-hidden="true" size={19} />
-          </Dialog.Close>
+          {dismissible ? (
+            <Dialog.Close aria-label="Close dialog" className={cn(
+              "absolute right-4 top-4 grid size-10 place-items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)]",
+              isDrawer ? "text-white/65 hover:bg-white/10 hover:text-white" : "text-[var(--muted)] hover:bg-black/5",
+            )}>
+              <X aria-hidden="true" size={19} />
+            </Dialog.Close>
+          ) : null}
           <div className="mt-6">{children}</div>
         </Dialog.Popup>
       </Dialog.Viewport>

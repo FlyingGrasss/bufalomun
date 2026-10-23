@@ -90,7 +90,14 @@ export default function ApplicationForm({ application, settings }: { application
       <div className="border-t border-[var(--border)] pt-6"><Button type="submit" disabled={busy}>{busy ? "Checking application…" : "Continue to email verification"}</Button><p className="mt-3 max-w-xl text-xs leading-5 text-[var(--muted)]">We send a six-digit code to the email in your application. Your application is delivered only after verification.</p></div>
     </form>
 
-    <DialogRoot open={dialogOpen} onOpenChange={setDialogOpen}><DialogContent title="Verify your email" description="Enter the six-digit code we sent. It expires in 10 minutes.">
+    <DialogRoot
+      open={dialogOpen}
+      onOpenChange={(next, details) => {
+        if (next) setDialogOpen(true);
+        else details.cancel();
+      }}
+      disablePointerDismissal
+    ><DialogContent title="Verify your email" description="Enter the six-digit code we sent. It expires in 10 minutes." dismissible={false} backdropClassName="bg-[#141211]/35 backdrop-blur-[2px]">
       <form onSubmit={verify} className="space-y-5"><FieldShell id="verification-code" label="Verification code" required error={message || undefined}><Input id="verification-code" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} className="text-center text-2xl font-extrabold tracking-[.4em]" aria-invalid={Boolean(message)} /></FieldShell><Button type="submit" disabled={busy || code.length !== 6}>{busy ? "Submitting…" : "Verify and submit"}</Button></form>
     </DialogContent></DialogRoot>
   </>;

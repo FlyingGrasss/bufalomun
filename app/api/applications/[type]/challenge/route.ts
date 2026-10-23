@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { getPublicContent } from "@/lib/site-settings";
+import { getPublicContent, publicSiteUrl } from "@/lib/site-settings";
 import { prisma } from "@/lib/prisma";
+import { buildVerificationEmail } from "@/lib/applications/email";
 import { allowRequest, hashCode, makeCode, requestIp, sha256, stableJson } from "@/lib/applications/security";
 import { isApplicationType, validateApplication } from "@/lib/applications/validation";
 
@@ -33,9 +34,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ typ
     create: { id, email: result.email, applicationType: type, codeHash: hashCode(code, id), payloadHash: sha256(stableJson(result.payload)), ipHash: sha256(ip), expiresAt, lastSentAt: now },
     update: { id, codeHash: hashCode(code, id), payloadHash: sha256(stableJson(result.payload)), ipHash: sha256(ip), attempts: 0, expiresAt, lastSentAt: now },
   });
+  const recipientName = result.payload.answers?.fullName?.trim() || result.payload.summary?.schoolName?.trim() || "";
+  const email = buildVerificationEmail({
+    code,
+    name: recipientName,
+    applicationTitle: application.title,
+    settings,
+    siteUrl: publicSiteUrl(settings),
+  });
   const resend = new Resend(process.env.RESEND_API_KEY);
   try {
-    const sent = await resend.emails.send({ from: process.env.RESEND_FROM || settings.conference.senderEmail, to: result.email, subject: `${code} is your ${settings.conference.brandName} verification code`, text: `Your verification code is ${code}. It expires in 10 minutes. If you did not request this, you can ignore this message.` });
+    const sent = await resend.emails.send({ from: process.env.RESEND_FROM || settings.conference.senderEmail, to: result.email, subject: email.subject, html: email.html, text: email.text });
     if (sent.error) throw new Error("RESEND_FAILED");
   } catch {
     await prisma.verificationChallenge.delete({ where: { id } }).catch(() => undefined);
